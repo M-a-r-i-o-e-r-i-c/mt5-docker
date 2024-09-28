@@ -1,6 +1,11 @@
 # Base image: Ubuntu 20.04
 FROM ubuntu:20.04
 
+# Set timezone environment variable
+ENV DEBIAN_FRONTEND=noninteractive
+RUN ln -fs /usr/share/zoneinfo/America/New_York /etc/localtime && dpkg-reconfigure -f noninteractive tzdata
+
+
 # Update package list and install dependencies
 RUN apt-get update && apt-get install -y \
     wget \
