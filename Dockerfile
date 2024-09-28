@@ -1,57 +1,51 @@
-# Base image: Ubuntu 20.04
-FROM ubuntu:20.04
+# Use a minimal Ubuntu base
+FROM ubuntu:22.04
 
-# Set timezone environment variable
+# Avoid prompts from apt
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Update package list
-RUN apt-get update
+# Update and install minimal dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    wget \
+    xvfb \
+    x11vnc \
+    xfce4 \
+    xfce4-terminal \
+    firefox-esr \
+    wine64 \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install packages in smaller groups
-RUN apt-get install -y tzdata wget curl gnupg2 software-properties-common
-RUN apt-get install -y unzip xvfb
-RUN apt-get install -y xfce4 xfce4-goodies
-RUN apt-get install -y tightvncserver
-RUN apt-get install -y wine64 winbind
-RUN apt-get install -y x11vnc net-tools
+# Set up wine prefix
+ENV WINEPREFIX=/root/.wine
+ENV WINEARCH=win64
 
-# Clean up
-RUN apt-get clean
-
-# Set timezone
-RUN ln -fs /usr/share/zoneinfo/America/New_York /etc/localtime && dpkg-reconfigure -f noninteractive tzdata
-
-# Set environment variables
-ENV DISPLAY=:1
-ENV NGROK_AUTHTOKEN=2mglReN800R6adU2u5ApNr37mRb_4so9h6qhNmxpYkhbw8XKA
-
-# Download and install Metatrader 5 (MT5)
-RUN wget https://download.mql5.com/cdn/web/metaquotes.software.corp/mt5/mt5setup.exe -O mt5setup.exe && \
-    wine mt5setup.exe /S /D=C:\\MT5 && \
-    rm mt5setup.exe
-
-# Install Ngrok
-RUN wget https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip && \
-    unzip ngrok-stable-linux-amd64.zip && \
-    mv ngrok /usr/local/bin/ && \
-    rm ngrok-stable-linux-amd64.zip
+# Download and install MT5
+RUN wget https://download.mql5.com/cdn/web/metaquotes.software.corp/mt5/mt5setup.exe \
+    && xvfb-run wine mt5setup.exe /auto \
+    && rm mt5setup.exe
 
 # Set up VNC
-RUN mkdir -p ~/.vnc && \
-    echo "vncpassword" | vncpasswd -f > ~/.vnc/passwd && \
-    chmod 600 ~/.vnc/passwd
+RUN mkdir ~/.vnc \
+    && x11vnc -storepasswd 1234 ~/.vnc/passwd
 
-# Expose VNC and Ngrok tunnel ports
-EXPOSE 5901 4040
+# Set display for Xvfb
+ENV DISPLAY=:99
 
-# Create entrypoint script to start VNC and Ngrok
+# Expose VNC port
+EXPOSE 5900
+
+# Start script
 RUN echo '#!/bin/bash\n\
-vncserver :1 -geometry 1280x800 -depth 24 &&\n\
-ngrok tcp 5901 --authtoken=${NGROK_AUTHTOKEN} &\n\
-wine "C:\\MT5\\terminal.exe" &' > /start.sh && \
-    chmod +x /start.sh
+Xvfb :99 -screen 0 1024x768x16 &\n\
+sleep 2\n\
+DISPLAY=:99 startxfce4 &\n\
+x11vnc -forever -usepw -display :99 &\n\
+wine ~/.wine/drive_c/Program\ Files/MetaTrader\ 5/terminal64.exe\n\
+' > /start.sh && chmod +x /start.sh
 
-# Set entrypoint to start VNC, Ngrok, and MT5
+# Set the entry point
 ENTRYPOINT ["/start.sh"]
 
 # Keep-alive to prevent container from exiting
