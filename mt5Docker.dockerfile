@@ -43,7 +43,7 @@ EXPOSE 5901 4040
 # Create entrypoint script to start VNC and Ngrok
 RUN echo '#!/bin/bash\n\
 vncserver :1 -geometry 1280x800 -depth 24 &&\n\
-ngrok tcp 5901 --authtoken=<YOUR_NGROK_AUTHTOKEN> &\n\
+ngrok tcp 5901 --authtoken=2mglReN800R6adU2u5ApNr37mRb_4so9h6qhNmxpYkhbw8XKA &\n\
 wine "C:\\MT5\\terminal.exe" &' > /start.sh && \
     chmod +x /start.sh
 
