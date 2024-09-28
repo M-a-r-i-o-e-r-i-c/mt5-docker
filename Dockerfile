@@ -4,8 +4,6 @@ FROM ubuntu:20.04
 # Set timezone environment variable
 ENV DEBIAN_FRONTEND=noninteractive
 
-
-
 # Update package list and install dependencies
 RUN apt-get update && apt-get install -y \
     tzdata \
@@ -21,14 +19,14 @@ RUN apt-get update && apt-get install -y \
     wine64 \
     winbind \
     x11vnc \
-    net-tools \
-    && apt-get clean
+    net-tools && apt-get clean
 
-
+# Set timezone
 RUN ln -fs /usr/share/zoneinfo/America/New_York /etc/localtime && dpkg-reconfigure -f noninteractive tzdata
 
 # Set environment variables
 ENV DISPLAY=:1
+ENV NGROK_AUTHTOKEN=2mglReN800R6adU2u5ApNr37mRb_4so9h6qhNmxpYkhbw8XKA
 
 # Download and install Metatrader 5 (MT5)
 RUN wget https://download.mql5.com/cdn/web/metaquotes.software.corp/mt5/mt5setup.exe -O mt5setup.exe && \
@@ -52,12 +50,9 @@ EXPOSE 5901 4040
 # Create entrypoint script to start VNC and Ngrok
 RUN echo '#!/bin/bash\n\
 vncserver :1 -geometry 1280x800 -depth 24 &&\n\
-ngrok tcp 5901 --authtoken=$NGROK_AUTHTOKEN &\n\
+ngrok tcp 5901 --authtoken=${NGROK_AUTHTOKEN} &\n\
 wine "C:\\MT5\\terminal.exe" &' > /start.sh && \
     chmod +x /start.sh
-
-# Set environment variable for Ngrok authtoken
-ENV NGROK_AUTHTOKEN=2mglReN800R6adU2u5ApNr37mRb_4so9h6qhNmxpYkhbw8XKA
 
 # Set entrypoint to start VNC, Ngrok, and MT5
 ENTRYPOINT ["/start.sh"]
