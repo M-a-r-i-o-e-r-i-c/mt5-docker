@@ -4,22 +4,19 @@ FROM ubuntu:20.04
 # Set timezone environment variable
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Update package list and install dependencies
-RUN apt-get update && apt-get install -y \
-    tzdata \
-    wget \
-    curl \
-    gnupg2 \
-    software-properties-common \
-    unzip \
-    xvfb \
-    xfce4 \
-    xfce4-goodies \
-    tightvncserver \
-    wine64 \
-    winbind \
-    x11vnc \
-    net-tools && apt-get clean
+# Update package list
+RUN apt-get update
+
+# Install packages in smaller groups
+RUN apt-get install -y tzdata wget curl gnupg2 software-properties-common
+RUN apt-get install -y unzip xvfb
+RUN apt-get install -y xfce4 xfce4-goodies
+RUN apt-get install -y tightvncserver
+RUN apt-get install -y wine64 winbind
+RUN apt-get install -y x11vnc net-tools
+
+# Clean up
+RUN apt-get clean
 
 # Set timezone
 RUN ln -fs /usr/share/zoneinfo/America/New_York /etc/localtime && dpkg-reconfigure -f noninteractive tzdata
