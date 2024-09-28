@@ -14,9 +14,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     xfce4-terminal \
     dbus-x11 \
     psmisc \
-    wine64 \
+    npm \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+
+# Install LocalTunnel globally
+RUN npm install -g localtunnel
 
 # Set up wine prefix
 ENV WINEPREFIX=/root/.wine
@@ -33,7 +36,7 @@ RUN mkdir ~/.vnc && \
 # Set display for Xvfb
 ENV DISPLAY=:99
 
-# Expose VNC port
+# Expose VNC port (5900)
 EXPOSE 5900
 
 # Start script
@@ -79,12 +82,12 @@ else\n\
     echo "MT5 executable not found"\n\
 fi\n\
 \n\
+# Start LocalTunnel without subdomain\n\
+lt --port 5900 &\n\
+\n\
 # Keep the container running\n\
 tail -f /dev/null\n\
 ' > /start.sh && chmod +x /start.sh
 
 # Set the entry point
 ENTRYPOINT ["/start.sh"]
-
-# Keep-alive to prevent container from exiting
-CMD ["bash", "-c", "while true; do sleep 60; done"]
