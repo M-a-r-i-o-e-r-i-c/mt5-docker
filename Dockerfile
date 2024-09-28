@@ -19,10 +19,10 @@ ENV WINEARCH=win64
 # Download MT5 (but don't install yet)
 RUN wget https://download.mql5.com/cdn/web/metaquotes.software.corp/mt5/mt5setup.exe
 
-# Set up VNC
-RUN mkdir ~/.vnc \
-    && echo "123456" | vncpasswd -f > ~/.vnc/passwd \
-    && chmod 600 ~/.vnc/passwd
+# Set up VNC (using x11vnc, which we've already installed)
+RUN mkdir ~/.vnc && \
+    echo "123456" > ~/.vnc/passwd && \
+    chmod 600 ~/.vnc/passwd
 
 # Set display for Xvfb
 ENV DISPLAY=:99
