@@ -46,7 +46,7 @@ RUN echo '#!/bin/bash\n\
 zerotier-one -d\n\
 \n\
 # Join ZeroTier network (replace NETWORK_ID with your ZeroTier network ID)\n\
-zerotier-cli join NETWORK_ID\n\
+zerotier-cli join 56374ac9a4e613b1\n\
 \n\
 # Function to check if a process is running\n\
 is_running() {\n\
